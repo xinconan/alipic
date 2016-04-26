@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace alipic46
 {
@@ -203,13 +204,26 @@ namespace alipic46
         /// <param name="objUrl"></param>
         private void DownloadImages(string objUrl)
         {
-            //UrlRefer:从哪个页面启动下载的
-
             //Path.GetFileName("aa/1.jpg")得到"1.jpg"
             //Path.Combine合并路径
             //保存的文件名
             string destFile = Path.Combine(path, Path.GetFileName(objUrl));
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(objUrl);
+            //匹配以"//"开头的URL，有些获取的地址是这样的
+            //如：//cbu01.alicdn.com/img/ibank/2016/497/727/2800727794_286792058.310x310.jpg
+            //需要给地址添加"http:"
+            string strExp = @"^//";
+            Regex myRegex = new Regex(strExp);
+            if (myRegex.IsMatch(objUrl))
+            {
+                objUrl = "http:" + objUrl;
+            }
+            
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new System.Uri(objUrl));
+            request.Method = "GET";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Accept = "image/jpeg, *";
+            request.KeepAlive = true;
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36";
             request.Referer = objUrl;//欺骗服务器
             try
             {
